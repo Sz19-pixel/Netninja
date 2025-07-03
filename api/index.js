@@ -24,50 +24,8 @@ module.exports = async (req, res) => {
     
     console.log('Request path:', path);
     
-    // Handle manifest.json
-    if (path === '/api' || path === '/api/' || path === '/api/manifest.json') {
-      res.setHeader('Content-Type', 'application/json');
-      res.status(200).json(manifest);
-      return;
-    }
-    
-    // Handle stream requests - format: /api/stream/movie/netnaija:slug.json
-    if (path.startsWith('/api/stream/')) {
-      const pathParts = path.split('/');
-      // Expected: ['', 'api', 'stream', 'movie', 'netnaija:slug.json']
-      
-      if (pathParts.length >= 5) {
-        const type = pathParts[3]; // 'movie'
-        let id = pathParts[4]; // 'netnaija:slug.json'
-        
-        // Remove .json extension if present
-        if (id.endsWith('.json')) {
-          id = id.slice(0, -5);
-        }
-        
-        console.log('Stream request:', { type, id });
-        
-        if (type === 'movie' && id && id.startsWith('netnaija:')) {
-          const slug = id.replace('netnaija:', '');
-          console.log(`Processing stream request for slug: ${slug}`);
-          
-          try {
-            const streams = await scraper.scrapeStreams(slug);
-            res.setHeader('Content-Type', 'application/json');
-            res.status(200).json({ streams });
-            return;
-          } catch (error) {
-            console.error('Scraping error:', error);
-            res.setHeader('Content-Type', 'application/json');
-            res.status(200).json({ streams: [] });
-            return;
-          }
-        }
-      }
-    }
-    
     // Handle root path - show add-on info
-    if (path === '/api' || path === '/api/') {
+    if (path === '/' || path === '') {
       res.setHeader('Content-Type', 'text/html');
       res.status(200).send(`
         <!DOCTYPE html>
@@ -111,13 +69,13 @@ module.exports = async (req, res) => {
               
               <h3>📡 Add-on Manifest URL:</h3>
               <div class="addon-url">
-                <code>https://${req.headers.host}/api/manifest.json</code>
+                <code>https://${req.headers.host}/manifest.json</code>
               </div>
               
               <h3>🚀 Install in Stremio:</h3>
               <p>Copy the manifest URL above and add it to Stremio, or click the button below:</p>
               <p>
-                <a href="stremio://https://${req.headers.host}/api/manifest.json" class="install-btn">
+                <a href="stremio://https://${req.headers.host}/manifest.json" class="install-btn">
                   📱 Install Add-on in Stremio
                 </a>
               </p>
@@ -130,12 +88,11 @@ module.exports = async (req, res) => {
                 <li>The slug should match the URL on Netnaija</li>
               </ul>
               
-              <h3>🔧 Technical Info:</h3>
+              <h3>🔧 Available Endpoints:</h3>
               <ul>
-                <li><strong>Manifest:</strong> <code>/api/manifest.json</code></li>
-                <li><strong>Streams:</strong> <code>/api/stream/movie/netnaija:slug.json</code></li>
-                <li><strong>Supported formats:</strong> MP4, M3U8 (HLS)</li>
-                <li><strong>Response time:</strong> 2-10 seconds per request</li>
+                <li><strong>Manifest:</strong> <code>/manifest.json</code></li>
+                <li><strong>Streams:</strong> <code>/stream/movie/netnaija:slug.json</code></li>
+                <li><strong>API Info:</strong> <code>/api</code></li>
               </ul>
             </div>
           </body>
@@ -144,13 +101,76 @@ module.exports = async (req, res) => {
       return;
     }
     
+    // Handle manifest.json
+    if (path === '/manifest.json' || path === '/api/manifest.json') {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).json(manifest);
+      return;
+    }
+    
+    // Handle stream requests - format: /stream/movie/netnaija:slug.json
+    if (path.startsWith('/stream/')) {
+      const pathParts = path.split('/');
+      // Expected: ['', 'stream', 'movie', 'netnaija:slug.json']
+      
+      if (pathParts.length >= 4) {
+        const type = pathParts[2]; // 'movie'
+        let id = pathParts[3]; // 'netnaija:slug.json'
+        
+        // Remove .json extension if present
+        if (id.endsWith('.json')) {
+          id = id.slice(0, -5);
+        }
+        
+        console.log('Stream request:', { type, id });
+        
+        if (type === 'movie' && id && id.startsWith('netnaija:')) {
+          const slug = id.replace('netnaija:', '');
+          console.log(`Processing stream request for slug: ${slug}`);
+          
+          try {
+            const streams = await scraper.scrapeStreams(slug);
+            res.setHeader('Content-Type', 'application/json');
+            res.status(200).json({ streams });
+            return;
+          } catch (error) {
+            console.error('Scraping error:', error);
+            res.setHeader('Content-Type', 'application/json');
+            res.status(200).json({ streams: [] });
+            return;
+          }
+        }
+      }
+    }
+    
+    // Handle API info path
+    if (path === '/api' || path === '/api/') {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).json({
+        name: "Netnaija Stremio Add-on",
+        version: "1.0.0",
+        status: "running",
+        endpoints: {
+          manifest: "/manifest.json",
+          streams: "/stream/movie/netnaija:slug.json",
+          info: "/api"
+        },
+        usage: {
+          format: "netnaija:movie-slug",
+          example: "netnaija:avengers-endgame-2019"
+        }
+      });
+      return;
+    }
+    
     // 404 for other paths
     res.status(404).json({ 
       error: 'Not found', 
       path: path,
       availableEndpoints: [
-        '/api/manifest.json',
-        '/api/stream/movie/netnaija:slug.json'
+        '/manifest.json',
+        '/stream/movie/netnaija:slug.json',
+        '/api'
       ]
     });
     
@@ -161,4 +181,4 @@ module.exports = async (req, res) => {
       message: error.message 
     });
   }
-}; 
+};
