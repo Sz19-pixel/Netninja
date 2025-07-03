@@ -1,0 +1,21 @@
+{
+  "id": "org.netnaija.stream",
+  "version": "1.0.0",
+  "name": "Netnaija Streamer",
+  "description": "Stream movies from Netnaija in Stremio",
+  "logo": "https://i.imgur.com/placeholder.png",
+  "background": "https://i.imgur.com/placeholder-bg.png",
+  "types": ["movie"],
+  "catalogs": [],
+  "resources": [
+    {
+      "name": "stream",
+      "types": ["movie"],
+      "idPrefixes": ["netnaija:"]
+    }
+  ],
+  "behaviorHints": {
+    "configurable": false,
+    "configurationRequired": false
+  }
+}
