@@ -1,0 +1,27 @@
+{
+  "name": "netnaija-stremio-addon",
+  "version": "1.0.0",
+  "description": "Stremio add-on for streaming content from Netnaija",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "stremio-addon-sdk": "^1.6.8"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "stremio",
+    "addon",
+    "netnaija",
+    "streaming"
+  ],
+  "author": "Netnaija Stremio Addon",
+  "license": "MIT"
+}
